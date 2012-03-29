@@ -5,6 +5,9 @@
         config: {{ config|safe }}
     });
 
+    CKEDITOR.config.content_embed_options = {{ content_embed_options|safe }};
+    CKEDITOR.config.content_embed_urls = {{ content_embed_urls|safe }};
+
     {% if filebrowser %}
         CKEDITOR.config.filebrowserBrowseUrl = '/admin/filebrowser/browse/?pop=3';
     {% endif %}

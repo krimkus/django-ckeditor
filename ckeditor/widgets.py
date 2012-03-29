@@ -10,11 +10,14 @@ from django.conf import settings
 from django.contrib.admin import widgets as admin_widgets
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
+from django.contrib.contenttypes.models import ContentType
 
 
 CKEDITOR_CONFIGS = dict((k, json.dumps(v)) for k, v in settings.CKEDITOR_CONFIGS.items())
 FILEBROWSER_PRESENT = 'filebrowser' in getattr(settings, 'INSTALLED_APPS', [])
 GRAPPELLI_PRESENT = 'grappelli' in getattr(settings, 'INSTALLED_APPS', [])
+
+CKEDITOR_EMBED_CONTENT = getattr(settings, 'CKEDITOR_EMBED_CONTENT', None)
 
 MEDIA = getattr(settings, 'CKEDITOR_MEDIA_URL',
                 '%s' % settings.STATIC_URL.rstrip('/')).rstrip('/')
@@ -33,11 +36,27 @@ class CKEditor(forms.Textarea):
 
     def render(self, name, value, attrs=None, **kwargs):
         rendered = super(CKEditor, self).render(name, value, attrs)
+        
+        content_embed_options = []
+        content_embed_urls = []
+
+        for model_string in CKEDITOR_EMBED_CONTENT:
+
+            app_label, model_name = model_string.split('.',1)
+            current_contenttype = ContentType.objects.get(app_label=app_label, model=model_name)
+            model_label = current_contenttype.model_class()._meta.verbose_name
+            contenttype_id = current_contenttype.id
+            model_url = '../../../%s/%s/?t=id' % (app_label, model_name)
+            content_embed_options += [[model_label, str(contenttype_id)]]
+            content_embed_urls += [[str(contenttype_id), model_url]]
+
 
         context = {
             'name': name,
             'config': CKEDITOR_CONFIGS[self.ckeditor_config],
             'filebrowser': FILEBROWSER_PRESENT,
+            'content_embed_options': content_embed_options,
+            'content_embed_urls': content_embed_urls,
 
             # This "regex" should match the ID attribute of this field.
             # The reason we use a regex is so we can handle inlines, which will have

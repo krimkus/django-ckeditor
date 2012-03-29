@@ -7,7 +7,7 @@ class HTMLField(models.TextField):
     """A string field for HTML content. It uses the CKEditor widget in forms."""
 
     def formfield(self, **kwargs):
-        defaults = { 'widget': ckeditor_widgets.CKEditor }
+        defaults = {'widget': ckeditor_widgets.CKEditor}
         defaults.update(kwargs)
 
         if defaults['widget'] == admin_widgets.AdminTextareaWidget:
