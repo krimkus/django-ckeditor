@@ -17,7 +17,7 @@ CKEDITOR_CONFIGS = dict((k, json.dumps(v)) for k, v in settings.CKEDITOR_CONFIGS
 FILEBROWSER_PRESENT = 'filebrowser' in getattr(settings, 'INSTALLED_APPS', [])
 GRAPPELLI_PRESENT = 'grappelli' in getattr(settings, 'INSTALLED_APPS', [])
 
-CKEDITOR_EMBED_CONTENT = getattr(settings, 'CKEDITOR_EMBED_CONTENT', None)
+CKEDITOR_EMBED_CONTENT = getattr(settings, 'CKEDITOR_EMBED_CONTENT', [])
 
 MEDIA = getattr(settings, 'CKEDITOR_MEDIA_URL',
                 '%s' % settings.STATIC_URL.rstrip('/')).rstrip('/')
@@ -39,7 +39,7 @@ class CKEditor(forms.Textarea):
         
         content_embed_options = []
         content_embed_urls = []
-
+        
         for model_string in CKEDITOR_EMBED_CONTENT:
 
             app_label, model_name = model_string.split('.',1)
