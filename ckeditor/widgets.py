@@ -11,6 +11,7 @@ from django.contrib.admin import widgets as admin_widgets
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.models import ContentType
+from django.conf.urls.defaults import patterns, url
 
 
 CKEDITOR_CONFIGS = dict((k, json.dumps(v)) for k, v in settings.CKEDITOR_CONFIGS.items())
@@ -29,16 +30,13 @@ class CKEditor(forms.Textarea):
         attrs = kwargs.get('attrs', {})
         attrs['class'] = 'django-ckeditor'
         kwargs['attrs'] = attrs
-
         self.ckeditor_config = kwargs.pop('ckeditor_config', 'default')
-
         super(CKEditor, self).__init__(*args, **kwargs)
 
     def render(self, name, value, attrs=None, **kwargs):
         rendered = super(CKEditor, self).render(name, value, attrs)
-        
         content_embed_options = []
-        content_embed_urls = []
+        content_embed_urls = {}
         
         for model_string in CKEDITOR_EMBED_CONTENT:
 
@@ -48,7 +46,7 @@ class CKEditor(forms.Textarea):
             contenttype_id = current_contenttype.id
             model_url = '../../../%s/%s/?t=id' % (app_label, model_name)
             content_embed_options += [[model_label, str(contenttype_id)]]
-            content_embed_urls += [[str(contenttype_id), model_url]]
+            content_embed_urls[str(contenttype_id)] = model_url
 
 
         context = {
@@ -56,17 +54,14 @@ class CKEditor(forms.Textarea):
             'config': CKEDITOR_CONFIGS[self.ckeditor_config],
             'filebrowser': FILEBROWSER_PRESENT,
             'content_embed_options': content_embed_options,
-            'content_embed_urls': content_embed_urls,
+            'content_embed_urls': json.dumps(content_embed_urls),
 
             # This "regex" should match the ID attribute of this field.
             # The reason we use a regex is so we can handle inlines, which will have
             # IDs like: id_subsection-6-description
             'regex': attrs['id'].replace('__prefix__', r'\d+'),
         }
-
-        return rendered +  mark_safe(render_to_string(
-            'ckeditor/ckeditor_script.html', context
-        ))
+        return rendered + mark_safe(render_to_string( 'ckeditor/ckeditor_script.html', context )) 
 
     def value_from_datadict(self, data, files, name):
         val = data.get(name, u'')
@@ -78,6 +73,8 @@ class CKEditor(forms.Textarea):
         js = (
             MEDIA + '/ckeditor/ckeditor/ckeditor.js',
             MEDIA + '/ckeditor/init.js',
+            MEDIA + '/client_admin/js/genericadmin.js',
+            MEDIA + '/ckeditor/genericadmin.js',
         )
         css = {
             'screen': (

@@ -85,7 +85,7 @@ CKEDITOR.dialog.add( 'link', function( editor )
 		emailSubjectRegex = /subject=([^;?:@&=$,\/]*)/,
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
 		anchorRegex = /^#(.*)$/,
-		contentRegex = /^\{\{get_content\(\d+,\d+\)\}\}$/,
+		contentRegex = /^\[\[object_url\((\d+),(\d+)\)\]\]$/,
 		urlRegex = /^((?:http|https|ftp|news):\/\/)?(.*)$/,
 		selectableTargets = /^(_(?:self|top|parent|blank))$/,
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
@@ -166,6 +166,13 @@ CKEDITOR.dialog.add( 'link', function( editor )
 				bodyMatch && ( email.body = decodeURIComponent( bodyMatch[ 1 ] ) );
 			}
 			// urlRegex matches empty strings, so need to check for href as well.
+			else if (  href && ( urlMatch = href.match( contentRegex ) ) )
+			{
+				retval.type = 'content';
+				retval.contentobject = {};
+				retval.contentobject.type = urlMatch[1];
+				retval.contentobject.id = urlMatch[2];
+			}			
 			else if (  href && ( urlMatch = href.match( urlRegex ) ) )
 			{
 				retval.type = 'url';
@@ -173,15 +180,8 @@ CKEDITOR.dialog.add( 'link', function( editor )
 				retval.url.protocol = urlMatch[1];
 				retval.url.url = urlMatch[2];
 			}
-			else if (  href && ( urlMatch = href.match( contentRegex ) ) )
-			{
-				retval.type = 'content';
-				retval.content = {};
-				retval.content.type = urlMatch[1];
-				retval.content.id = urlMatch[2];
-			}
 			else
-				retval.type = 'url';
+				retval.type = 'content';
 		}
 
 		// Load target and popup settings.
@@ -739,6 +739,7 @@ CKEDITOR.dialog.add( 'link', function( editor )
 						type :  'vbox',
 						id : 'contentOptions',
 						padding : 1,
+						className: 'generic_content',
 						children :
 						[
 
@@ -746,6 +747,7 @@ CKEDITOR.dialog.add( 'link', function( editor )
 								id : 'type',
 								type : 'select',
 								label : 'Content Type',
+								className: 'content_type',
 								'default' : '1',
 								items : editor.config.content_embed_options,
 								setup : function( data )
@@ -758,12 +760,17 @@ CKEDITOR.dialog.add( 'link', function( editor )
 									if ( !data.contentobject )
 										data.contentobject = {};
 									data.contentobject.type = this.getValue();
+								},
+								onShow : function( data)
+								{
+									activate_content_type_select();
 								}
 							},
 							{
 								type : 'text',
 								id : 'id',
 								label : 'Object',
+								className: 'object_id',
 								size : 10,
 								required : true,
 								validate : function()
@@ -796,22 +803,24 @@ CKEDITOR.dialog.add( 'link', function( editor )
 							},
 					        {
 					        	type : 'html',
-					        	html : '<a href="../../../modules/modulesideimage/?t=id" title="Link to Content" hidefocus="true" class="cke_dialog_ui_button" role="button" id="browseObject" onclick="return showRelatedObjectLookupPopup(this);"> \
+								setup : function( data )
+								{
+									//debugger;
+									console.log('setting up html');
+								},
+					        	html : '<a href="../../../modules/modulesideimage/?t=id" title="Link to Content" hidefocus="true" class="cke_dialog_ui_button lookup_button" role="button" id="lookup_cke_72_textInput" onclick="return showRelatedObjectLookupPopup(this);"> \
 					        	<span class="cke_dialog_ui_button">Choose content</span></a> \
-					        	<a href="../../../modules/modulesideimage/?t=id" class="related-lookup" id="lookup_id_cke_72_textInput" onclick="return showRelatedObjectLookupPopup(this);"> \
-					        	<img src="{{STATIC_URL}}img/admin/selector-search.gif" width="16" height="16" alt="Lookup" /></a> \
 					        	<script type="text/javascript"> \
-					        		function updateLookupUrl(this){ \
-					        		} \
-					        		$ = django.jQuery;(function($) {  \
-					        			$(document).ready( function() { \
-					        				var id_modules_pagemodule_parent_content_type_parent_object_id_0_content_type_choice_urls = {    "72" : "../../../modules/modulehero/?t=id",    "64" : "../../../modules/modulesideimage/?t=id",  "65" : "../../../modules/moduleusers/?t=id",    "71" : "../../../modules/modulerelatedportfolioitems/?t=id",};    \
-					        				$(".cke_dialog_ui_input_select").change(function (){  \
-					        					console.log(id_modules_pagemodule_parent_content_type_parent_object_id_0_content_type_choice_urls[$(this).val()]); \
-					        					$("#lookup_id_modules-pagemodule-parent_content_type-parent_object_id-0-object_id").attr("href",id_modules_pagemodule_parent_content_type_parent_object_id_0_content_type_choice_urls[$(this).val()]);    \
-					        				});  \
-										}); \
-									})(django.jQuery); \
+					        		console.log("setting the change func on input field"); \
+					        		$ = django.jQuery; \
+					        		$(document).ready( function() { console.log("setting the change func on input fld"); } \
+				        			$(document).ready( function() { \
+				        				var content_type_choice_urls =  '+editor.config.content_embed_urls+';    \
+				        				$(".content_type").change(function (){  \
+				        					console.log(content_type_choice_urls[$(this).val()]); \
+				        					$("#lookup_cke_72_textInput").attr("href",content_type_choice_urls[$(this).val()]);    \
+				        				});  \
+									}); \
 								</script>'
 					        }
 						],
@@ -1277,7 +1286,7 @@ CKEDITOR.dialog.add( 'link', function( editor )
 				case 'content':
 					var type = ( data.contentobject && data.contentobject.type != undefined ) ? data.contentobject.type : '1',
 						id = ( data.contentobject && data.contentobject.id ) || '';
-					attributes[ 'data-cke-saved-href' ] = '{{object_url(' + type + ',' + id + ')}}';
+					attributes[ 'data-cke-saved-href' ] = '[[object_url(' + type + ',' + id + ')]]';
 					break;
 				case 'url':
 					var protocol = ( data.url && data.url.protocol != undefined ) ? data.url.protocol : 'http://',
