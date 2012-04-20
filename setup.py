@@ -1,6 +1,19 @@
 import os
 from setuptools import setup, find_packages
 
+def find_package_data(**packages):
+    package_data = {}
+    for package_directory,top_dirs in packages.items():
+        outfiles = []
+        package_data[package_directory] = []
+        for top_dir in top_dirs:
+            for dirpath, dirnames, filenames in os.walk(os.path.join(package_directory,top_dir)):
+                for filename in filenames:
+                    path = os.path.join(dirpath, filename)[len(package_directory)+1:]
+                    package_data[package_directory].append(path)
+    return package_data
+
+
 install_requires = []
 try:
     import json
@@ -27,5 +40,6 @@ setup(
     author_email='dev@dwaiter.com',
     url='http://bitbucket.org/dwaiter/django-ckeditor/',
     packages=find_packages(),
+    package_data = find_package_data(ckeditor=['static', 'templates']),
     include_package_data=True,
 )
