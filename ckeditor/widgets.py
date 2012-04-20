@@ -16,14 +16,11 @@ from django.conf.urls.defaults import patterns, url
 
 CKEDITOR_CONFIGS = dict((k, json.dumps(v)) for k, v in settings.CKEDITOR_CONFIGS.items())
 FILEBROWSER_PRESENT = 'filebrowser' in getattr(settings, 'INSTALLED_APPS', [])
-GRAPPELLI_PRESENT = 'grappelli' in getattr(settings, 'INSTALLED_APPS', [])
-
 CKEDITOR_EMBED_CONTENT = getattr(settings, 'CKEDITOR_EMBED_CONTENT', [])
 
 MEDIA = getattr(settings, 'CKEDITOR_MEDIA_URL',
                 '%s' % settings.STATIC_URL.rstrip('/')).rstrip('/')
 
-_CSS_FILE = 'grappelli.css' if GRAPPELLI_PRESENT else 'standard.css'
 
 class CKEditor(forms.Textarea):
     def __init__(self, *args, **kwargs):
@@ -76,11 +73,6 @@ class CKEditor(forms.Textarea):
             MEDIA + '/client_admin/js/genericadmin.js',
             MEDIA + '/ckeditor/genericadmin.js',
         )
-        css = {
-            'screen': (
-                MEDIA + '/css/' + _CSS_FILE,
-            ),
-        }
 
 
 

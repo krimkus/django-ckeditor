@@ -45,9 +45,6 @@ window.Django_CKEditor_Configs = [];
                 }
             }
         });
-
-        setTimeout(InitCKEditors, 1000);
     };
-
-    InitCKEditors();
+    window.InitCKEditors = InitCKEditors;
 })()
