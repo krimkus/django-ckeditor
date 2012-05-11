@@ -85,7 +85,7 @@ CKEDITOR.dialog.add( 'link', function( editor )
 		emailSubjectRegex = /subject=([^;?:@&=$,\/]*)/,
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
 		anchorRegex = /^#(.*)$/,
-		contentRegex = /^\[\[object_url\((\d+),(\d+)\)\]\]$/,
+		contentRegex = /^\[\[\s*object_url\(\s*(\d*)\s*,\s*(\d*)\s*\)\s*\]\]$/,
 		urlRegex = /^((?:http|https|ftp|news):\/\/)?(.*)$/,
 		selectableTargets = /^(_(?:self|top|parent|blank))$/,
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
@@ -761,7 +761,7 @@ CKEDITOR.dialog.add( 'link', function( editor )
 										data.contentobject = {};
 									data.contentobject.type = this.getValue();
 								},
-								onShow : function( data)
+								onShow : function( data )
 								{
 									activate_content_type_select();
 								}
@@ -772,7 +772,7 @@ CKEDITOR.dialog.add( 'link', function( editor )
 								label : 'Object',
 								className: 'object_id',
 								size : 10,
-								required : true,
+								required : false,
 								validate : function()
 								{
 									var dialog = this.getDialog();
@@ -780,9 +780,9 @@ CKEDITOR.dialog.add( 'link', function( editor )
 									if ( !dialog.getContentElement( 'info', 'linkType' ) ||
 											dialog.getValueOf( 'info', 'linkType' ) != 'content' )
 										return true;
-
-									var func = CKEDITOR.dialog.validate.notEmpty( 'Please choose an object' );
-									return func.apply( this );
+									return true;
+									//var func = CKEDITOR.dialog.validate.notEmpty( 'Please choose an object' );
+									//return func.apply( this );
 								},
 								setup : function( data )
 								{
@@ -800,29 +800,7 @@ CKEDITOR.dialog.add( 'link', function( editor )
 
 									data.contentobject.id = this.getValue();
 								}
-							},
-					        {
-					        	type : 'html',
-								setup : function( data )
-								{
-									//debugger;
-									console.log('setting up html');
-								},
-					        	html : '<a href="../../../modules/modulesideimage/?t=id" title="Link to Content" hidefocus="true" class="cke_dialog_ui_button lookup_button" role="button" id="lookup_cke_72_textInput" onclick="return showRelatedObjectLookupPopup(this);"> \
-					        	<span class="cke_dialog_ui_button">Choose content</span></a> \
-					        	<script type="text/javascript"> \
-					        		console.log("setting the change func on input field"); \
-					        		$ = django.jQuery; \
-					        		$(document).ready( function() { console.log("setting the change func on input fld"); } \
-				        			$(document).ready( function() { \
-				        				var content_type_choice_urls =  '+editor.config.content_embed_urls+';    \
-				        				$(".content_type").change(function (){  \
-				        					console.log(content_type_choice_urls[$(this).val()]); \
-				        					$("#lookup_cke_72_textInput").attr("href",content_type_choice_urls[$(this).val()]);    \
-				        				});  \
-									}); \
-								</script>'
-					        }
+							}
 						],
 						setup : function( data )
 						{

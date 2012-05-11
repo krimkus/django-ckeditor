@@ -45,6 +45,7 @@ class CKEditor(forms.Textarea):
             content_embed_options += [[model_label, str(contenttype_id)]]
             content_embed_urls[str(contenttype_id)] = model_url
 
+        image_embed_url = '../../../%s/%s/?t=id' % ('structure', 'imageupload')
 
         context = {
             'name': name,
@@ -52,6 +53,7 @@ class CKEditor(forms.Textarea):
             'filebrowser': FILEBROWSER_PRESENT,
             'content_embed_options': content_embed_options,
             'content_embed_urls': json.dumps(content_embed_urls),
+            'image_embed_url': image_embed_url,
 
             # This "regex" should match the ID attribute of this field.
             # The reason we use a regex is so we can handle inlines, which will have
